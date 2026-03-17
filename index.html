@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>チキンゲーム（フェイントver）</title>
+<title>チキンゲーム（完成版＋距離表示）</title>
 
 <style>
 body{
@@ -25,7 +25,6 @@ h1{ margin:15px; }
     overflow:hidden;
 }
 
-/* カメレオン */
 #chameleon{
     position:absolute;
     top:0;
@@ -58,7 +57,6 @@ h1{ margin:15px; }
 #eye1{ left:80px; }
 #eye2{ right:80px; }
 
-/* 舌 */
 #tongue{
     position:absolute;
     top:100px;
@@ -70,7 +68,6 @@ h1{ margin:15px; }
     border-radius:20px;
 }
 
-/* プレイヤー */
 #player{
     position:absolute;
     bottom:20px;
@@ -79,7 +76,6 @@ h1{ margin:15px; }
     font-size:40px;
 }
 
-/* ボタン */
 button{
     padding:12px 25px;
     font-size:16px;
@@ -90,14 +86,12 @@ button{
     margin:5px;
 }
 
-/* 説明 */
 #info{
     font-size:14px;
     margin-top:10px;
     color:#ccc;
 }
 
-/* 結果 */
 #result{
     font-size:22px;
     margin-top:10px;
@@ -126,7 +120,7 @@ button{
 
 <div id="info">
 🕹 操作：ボタン or Enterキーで回避！<br>
-⚠ 舌は途中で止まる（フェイントあり）！焦るな！
+⚠ 舌は途中で止まる（フェイントあり）
 </div>
 
 <div id="result"></div>
@@ -138,7 +132,6 @@ let speed = 3;
 let gameRunning = false;
 let dodged = false;
 
-// フェイント用
 let feintTriggered = false;
 let feintTime = 0;
 
@@ -159,10 +152,9 @@ function startGame(){
 function loop(){
     if(!gameRunning) return;
 
-    // フェイント発動（ランダム）
     if(!feintTriggered && tongueLength > 100 && Math.random() < 0.02){
         feintTriggered = true;
-        feintTime = 30; // 約0.5秒停止
+        feintTime = 30;
     }
 
     if(feintTime > 0){
@@ -193,7 +185,6 @@ function dodge(){
     showResult(true);
 }
 
-// Enterキー対応
 document.addEventListener("keydown", function(e){
     if(e.key === "Enter"){
         dodge();
@@ -203,26 +194,26 @@ document.addEventListener("keydown", function(e){
 function showResult(success){
 
     let distance = Math.max(0, 380 - tongueLength);
-    let score = Math.floor(1000 / (distance + 1));
 
-    if(!success){
-        document.getElementById("result").innerText =
-        "💀 食べられた… スコア: 0";
-        return;
-    }
+    // px → mっぽくする（見た目用）
+    let meter = (distance / 10).toFixed(1);
 
     let text = "";
 
-    if(distance < 20){
-        text = "🔥 神回避！！！";
-    }else if(distance < 60){
-        text = "😏 いい感じ！";
+    if(success){
+        if(distance < 20){
+            text = "🔥 神回避！！！";
+        }else if(distance < 60){
+            text = "😏 いい感じ！";
+        }else{
+            text = "🙂 まだ余裕あるな…";
+        }
     }else{
-        text = "🙂 まだ余裕あるな…";
+        text = "💀 食べられた…！";
     }
 
     document.getElementById("result").innerText =
-    text + " スコア: " + score;
+    text + " 残り " + meter + " m";
 }
 
 </script>
