@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>チキンゲーム</title>
+
+<style>
+body{
+    margin:0;
+    font-family:sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin:20px;
+}
+
+#game{
+    position:relative;
+    width:300px;
+    height:500px;
+    margin:20px auto;
+    background:#222;
+    border:3px solid white;
+    overflow:hidden;
+}
+
+#player{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:40px;
+}
+
+#tongue{
+    position:absolute;
+    top:-200px;
+    left:50%;
+    transform:translateX(-50%);
+    width:40px;
+    height:200px;
+    background:pink;
+    border-radius:20px;
+}
+
+button{
+    padding:15px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:gold;
+    cursor:pointer;
+}
+
+#score{
+    font-size:20px;
+    margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>👅 チキンゲーム</h1>
+
+<div id="game">
+    <div id="tongue"></div>
+    <div id="player">😨</div>
+</div>
+
+<button onclick="startGame()">スタート</button>
+<button onclick="dodge()">回避！</button>
+
+<div id="score">スコア: 0</div>
+
+<script>
+
+let tongueY = -200;
+let speed = 2;
+let gameRunning = false;
+let dodged = false;
+
+function startGame(){
+    tongueY = -200;
+    speed = 2 + Math.random()*3; // 毎回ちょっと違う速さ
+    gameRunning = true;
+    dodged = false;
+    document.getElementById("score").innerText="スコア: 0";
+    loop();
+}
+
+function loop(){
+    if(!gameRunning) return;
+
+    tongueY += speed;
+    document.getElementById("tongue").style.top = tongueY + "px";
+
+    // 当たり判定
+    if(tongueY > 350 && !dodged){
+        gameRunning = false;
+        alert("💀 食べられた…！");
+        return;
+    }
+
+    requestAnimationFrame(loop);
+}
+
+function dodge(){
+    if(!gameRunning || dodged) return;
+
+    dodged = true;
+    gameRunning = false;
+
+    // ギリギリ度 = 下にどれだけ近いか
+    let distance = Math.max(0, 350 - tongueY);
+    let score = Math.floor(1000 / (distance + 1));
+
+    document.getElementById("player").innerText="😎";
+    document.getElementById("score").innerText="スコア: " + score;
+
+    if(distance < 20){
+        alert("🔥 神回避！！！");
+    }else if(distance < 60){
+        alert("😏 いい感じ！");
+    }else{
+        alert("🙂 まだ余裕あるな…");
+    }
+}
+
+</script>
+
+</body>
+</html>
