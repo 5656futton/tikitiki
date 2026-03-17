@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>チキンゲーム</title>
+<title>チキンゲーム（フェイントver）</title>
 
 <style>
 body{
@@ -13,20 +13,64 @@ body{
     text-align:center;
 }
 
-h1{
-    margin:20px;
-}
+h1{ margin:15px; }
 
 #game{
     position:relative;
-    width:300px;
-    height:500px;
+    width:320px;
+    height:520px;
     margin:20px auto;
     background:#222;
     border:3px solid white;
     overflow:hidden;
 }
 
+/* カメレオン */
+#chameleon{
+    position:absolute;
+    top:0;
+    width:100%;
+    height:120px;
+    background:limegreen;
+    border-bottom-left-radius:60px;
+    border-bottom-right-radius:60px;
+}
+
+.eye{
+    position:absolute;
+    top:30px;
+    width:30px;
+    height:30px;
+    background:white;
+    border-radius:50%;
+}
+.eye::after{
+    content:"";
+    position:absolute;
+    top:8px;
+    left:8px;
+    width:14px;
+    height:14px;
+    background:black;
+    border-radius:50%;
+}
+
+#eye1{ left:80px; }
+#eye2{ right:80px; }
+
+/* 舌 */
+#tongue{
+    position:absolute;
+    top:100px;
+    left:50%;
+    transform:translateX(-50%);
+    width:30px;
+    height:0px;
+    background:pink;
+    border-radius:20px;
+}
+
+/* プレイヤー */
 #player{
     position:absolute;
     bottom:20px;
@@ -35,29 +79,29 @@ h1{
     font-size:40px;
 }
 
-#tongue{
-    position:absolute;
-    top:-200px;
-    left:50%;
-    transform:translateX(-50%);
-    width:40px;
-    height:200px;
-    background:pink;
-    border-radius:20px;
-}
-
+/* ボタン */
 button{
-    padding:15px 30px;
-    font-size:18px;
+    padding:12px 25px;
+    font-size:16px;
     border:none;
     border-radius:10px;
     background:gold;
     cursor:pointer;
+    margin:5px;
 }
 
-#score{
-    font-size:20px;
+/* 説明 */
+#info{
+    font-size:14px;
     margin-top:10px;
+    color:#ccc;
+}
+
+/* 結果 */
+#result{
+    font-size:22px;
+    margin-top:10px;
+    height:60px;
 }
 
 </style>
@@ -68,6 +112,11 @@ button{
 <h1>👅 チキンゲーム</h1>
 
 <div id="game">
+    <div id="chameleon">
+        <div id="eye1" class="eye"></div>
+        <div id="eye2" class="eye"></div>
+    </div>
+
     <div id="tongue"></div>
     <div id="player">😨</div>
 </div>
@@ -75,34 +124,58 @@ button{
 <button onclick="startGame()">スタート</button>
 <button onclick="dodge()">回避！</button>
 
-<div id="score">スコア: 0</div>
+<div id="info">
+🕹 操作：ボタン or Enterキーで回避！<br>
+⚠ 舌は途中で止まる（フェイントあり）！焦るな！
+</div>
+
+<div id="result"></div>
 
 <script>
 
-let tongueY = -200;
-let speed = 2;
+let tongueLength = 0;
+let speed = 3;
 let gameRunning = false;
 let dodged = false;
 
+// フェイント用
+let feintTriggered = false;
+let feintTime = 0;
+
 function startGame(){
-    tongueY = -200;
-    speed = 2 + Math.random()*3; // 毎回ちょっと違う速さ
+    tongueLength = 0;
+    speed = 2 + Math.random()*4;
     gameRunning = true;
     dodged = false;
-    document.getElementById("score").innerText="スコア: 0";
+    feintTriggered = false;
+
+    document.getElementById("tongue").style.height = "0px";
+    document.getElementById("player").innerText="😨";
+    document.getElementById("result").innerText="";
+
     loop();
 }
 
 function loop(){
     if(!gameRunning) return;
 
-    tongueY += speed;
-    document.getElementById("tongue").style.top = tongueY + "px";
+    // フェイント発動（ランダム）
+    if(!feintTriggered && tongueLength > 100 && Math.random() < 0.02){
+        feintTriggered = true;
+        feintTime = 30; // 約0.5秒停止
+    }
 
-    // 当たり判定
-    if(tongueY > 350 && !dodged){
+    if(feintTime > 0){
+        feintTime--;
+    }else{
+        tongueLength += speed;
+    }
+
+    document.getElementById("tongue").style.height = tongueLength + "px";
+
+    if(tongueLength > 380 && !dodged){
         gameRunning = false;
-        alert("💀 食べられた…！");
+        showResult(false);
         return;
     }
 
@@ -115,20 +188,41 @@ function dodge(){
     dodged = true;
     gameRunning = false;
 
-    // ギリギリ度 = 下にどれだけ近いか
-    let distance = Math.max(0, 350 - tongueY);
+    document.getElementById("player").innerText="😎";
+
+    showResult(true);
+}
+
+// Enterキー対応
+document.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        dodge();
+    }
+});
+
+function showResult(success){
+
+    let distance = Math.max(0, 380 - tongueLength);
     let score = Math.floor(1000 / (distance + 1));
 
-    document.getElementById("player").innerText="😎";
-    document.getElementById("score").innerText="スコア: " + score;
+    if(!success){
+        document.getElementById("result").innerText =
+        "💀 食べられた… スコア: 0";
+        return;
+    }
+
+    let text = "";
 
     if(distance < 20){
-        alert("🔥 神回避！！！");
+        text = "🔥 神回避！！！";
     }else if(distance < 60){
-        alert("😏 いい感じ！");
+        text = "😏 いい感じ！";
     }else{
-        alert("🙂 まだ余裕あるな…");
+        text = "🙂 まだ余裕あるな…";
     }
+
+    document.getElementById("result").innerText =
+    text + " スコア: " + score;
 }
 
 </script>
